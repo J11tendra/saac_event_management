@@ -42,6 +42,7 @@ export interface EventWithDetails extends Event {
   club?: Club;
   event_date_preference: EventDatePreference[];
   budget_request: BudgetRequest[];
+  event_review?: EventReview[];
 }
 
 export interface Admin {
@@ -58,6 +59,8 @@ export interface EventReview {
   admin_id: string | null;
   club_id: string | null;
   comment: string;
+  admin?: Admin | null;
+  club?: Club | null;
 }
 
 export interface Collaborator {

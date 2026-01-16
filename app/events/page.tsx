@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { redirect } from "next/navigation";
 import EventsClient from "./events-client";
+import type { Event } from "@/lib/queries";
 
 export default async function EventsPage() {
   console.log("[events/page] Events page accessed");
@@ -66,24 +67,13 @@ export default async function EventsPage() {
       .from("event")
       .select(
         `
-        id,
-        event_name,
-        event_descriptions,
-        approval_status,
-        approval_date,
-        created_at,
-        accepted_date_preference_id,
-        event_date_preference!event_date_preference_event_id_fkey (
-          id,
-          date,
-          start_time,
-          end_time
-        ),
-        budget_request (
-          budget_amt,
-          purpose,
-          approved_budget,
-          approval_date
+        *,
+        event_date_preference!event_date_preference_event_id_fkey (*),
+        budget_request (*),
+        event_review!event_review_event_id_fkey (
+          *,
+          admin (*),
+          club (*)
         )
       `
       )
@@ -102,7 +92,7 @@ export default async function EventsPage() {
     return (
       <EventsClient
         club={newClub}
-        events={events || []}
+        initialEvents={(events as Event[]) || []}
         user={user}
       />
     );
@@ -116,24 +106,13 @@ export default async function EventsPage() {
     .from("event")
     .select(
       `
-      id,
-      event_name,
-      event_descriptions,
-      approval_status,
-      approval_date,
-      created_at,
-      accepted_date_preference_id,
-      event_date_preference!event_date_preference_event_id_fkey (
-        id,
-        date,
-        start_time,
-        end_time
-      ),
-      budget_request (
-        budget_amt,
-        purpose,
-        approved_budget,
-        approval_date
+      *,
+      event_date_preference!event_date_preference_event_id_fkey (*),
+      budget_request (*),
+      event_review!event_review_event_id_fkey (
+        *,
+        admin (*),
+        club (*)
       )
     `
     )
@@ -148,7 +127,7 @@ export default async function EventsPage() {
   return (
     <EventsClient
       club={club}
-      events={events || []}
+      initialEvents={(events as Event[]) || []}
       user={user}
     />
   );

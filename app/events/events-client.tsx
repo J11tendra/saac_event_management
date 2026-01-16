@@ -24,11 +24,11 @@ interface User {
 
 interface Props {
   club: Club;
-  events: Event[];
+  initialEvents: Event[];
   user: User;
 }
 
-export default function EventsClient({ club, events }: Props) {
+export default function EventsClient({ club, initialEvents }: Props) {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   // Expose club info and create dialog handler to window for layout/sidebar access
@@ -78,7 +78,11 @@ export default function EventsClient({ club, events }: Props) {
         </div>
 
         {/* Events List */}
-        <EventList events={events} />
+        <EventList
+          events={initialEvents}
+          clubId={club.id}
+          onRefetch={() => window.location.reload()}
+        />
 
         {/* Create Event Dialog */}
         <Dialog

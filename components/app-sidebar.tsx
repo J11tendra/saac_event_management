@@ -14,6 +14,7 @@ import {
   SidebarMenuItem,
   SidebarFooter,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { UserProfile } from "@/components/auth/user-profile";
@@ -36,6 +37,8 @@ export function AppSidebar({
   clubName?: string;
   clubEmail?: string;
 }) {
+  const { state } = useSidebar();
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
@@ -75,15 +78,17 @@ export function AppSidebar({
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      onClick={onCreateEvent}
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span className="sr-only">Create new event</span>
-                    </Button>
+                    {state !== "collapsed" && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        onClick={onCreateEvent}
+                      >
+                        <Plus className="h-4 w-4" />
+                        <span className="sr-only">Create new event</span>
+                      </Button>
+                    )}
                   </div>
                 </SidebarMenuItem>
               ))}
