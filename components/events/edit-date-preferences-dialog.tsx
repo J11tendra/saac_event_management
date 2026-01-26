@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateDatePreferences, type EventDatePreference } from "@/lib/queries";
+import { updateDatePreferences } from "@/lib/queries";
+import type { EventDatePreference } from "@/lib/types";
 import {
   Dialog,
   DialogContent,
@@ -52,21 +53,21 @@ export function EditDatePreferencesDialog({
     // Use a timeout to avoid synchronous setState in effect
     const timer = setTimeout(() => {
       const initialPreferences =
-        currentPreferences.length > 0
-          ? currentPreferences.map((pref) => ({
-              id: pref.id,
-              date: pref.date,
-              startTime: pref.start_time,
-              endTime: pref.end_time,
-            }))
-          : [
-              {
-                id: crypto.randomUUID(),
-                date: "",
-                startTime: "",
-                endTime: "",
-              },
-            ];
+        currentPreferences.length > 0 ?
+          currentPreferences.map((pref) => ({
+            id: pref.id,
+            date: pref.date,
+            startTime: pref.start_time,
+            endTime: pref.end_time,
+          }))
+        : [
+            {
+              id: crypto.randomUUID(),
+              date: "",
+              startTime: "",
+              endTime: "",
+            },
+          ];
 
       setPreferences(initialPreferences);
     }, 0);
@@ -107,10 +108,10 @@ export function EditDatePreferencesDialog({
   const updatePreference = (
     id: string,
     field: "date" | "startTime" | "endTime",
-    value: string
+    value: string,
   ) => {
     setPreferences(
-      preferences.map((p) => (p.id === id ? { ...p, [field]: value } : p))
+      preferences.map((p) => (p.id === id ? { ...p, [field]: value } : p)),
     );
   };
 
@@ -120,7 +121,7 @@ export function EditDatePreferencesDialog({
 
     // Validate all preferences
     const validPreferences = preferences.filter(
-      (p) => p.date && p.startTime && p.endTime
+      (p) => p.date && p.startTime && p.endTime,
     );
 
     if (validPreferences.length === 0) {
