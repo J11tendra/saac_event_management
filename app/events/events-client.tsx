@@ -1,22 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { type Event } from "@/lib/queries";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { type Event, fetchEventsForClub } from "@/lib/queries";
+import type { Club } from "@/lib/types";
 import { EventList } from "@/components/events/event-list";
-import { CreateEventForm } from "@/components/events/create-event-form";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-
-interface Club {
-  id: string;
-  club_name: string;
-  club_email: string;
-}
+import { CreateEventDialog } from "@/components/events/create-event-dialog";
+import { useClub } from "@/components/providers/club-context";
 
 interface User {
   email?: string;
@@ -30,44 +20,24 @@ interface Props {
 
 export default function EventsClient({ club, initialEvents }: Props) {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const { setClub, setCreateEventDialogHandler } = useClub();
 
-  // Expose club info and create dialog handler to window for layout/sidebar access
-  React.useEffect(() => {
-    (
-      window as Window &
-        typeof globalThis & {
-          __clubInfo?: { name: string; email: string };
-          __openCreateEventDialog?: () => void;
-        }
-    ).__clubInfo = {
-      name: club.club_name,
-      email: club.club_email,
-    };
-    (
-      window as Window &
-        typeof globalThis & {
-          __clubInfo?: { name: string; email: string };
-          __openCreateEventDialog?: () => void;
-        }
-    ).__openCreateEventDialog = () => setShowCreateDialog(true);
+  // Use React Query to manage events data
+  const { data: events = [] } = useQuery({
+    queryKey: ["events", club.id],
+    queryFn: () => fetchEventsForClub(club.id) as Promise<Event[]>,
+    initialData: initialEvents,
+  });
+
+  // Set club info in context and register dialog handler
+  useEffect(() => {
+    setClub(club);
+    setCreateEventDialogHandler(() => setShowCreateDialog(true));
 
     return () => {
-      delete (
-        window as Window &
-          typeof globalThis & {
-            __clubInfo?: { name: string; email: string };
-            __openCreateEventDialog?: () => void;
-          }
-      ).__clubInfo;
-      delete (
-        window as Window &
-          typeof globalThis & {
-            __clubInfo?: { name: string; email: string };
-            __openCreateEventDialog?: () => void;
-          }
-      ).__openCreateEventDialog;
+      setClub(null);
     };
-  }, [club.club_name, club.club_email]);
+  }, [club, setClub, setCreateEventDialogHandler]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -79,35 +49,18 @@ export default function EventsClient({ club, initialEvents }: Props) {
 
         {/* Events List */}
         <EventList
-          events={initialEvents}
+          events={events}
           clubId={club.id}
-          onRefetch={() => window.location.reload()}
+          onRefetch={() => {}}
         />
 
         {/* Create Event Dialog */}
-        <Dialog
+        <CreateEventDialog
+          clubId={club.id}
           open={showCreateDialog}
           onOpenChange={setShowCreateDialog}
-        >
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Create New Event</DialogTitle>
-              <DialogDescription>
-                Fill in the details for your event. All fields are required
-                except budget information.
-              </DialogDescription>
-            </DialogHeader>
-            <CreateEventForm
-              clubId={club.id}
-              onSuccess={() => setShowCreateDialog(false)}
-              onCancel={() => setShowCreateDialog(false)}
-            />
-          </DialogContent>
-        </Dialog>
+        />
       </main>
     </div>
   );
 }
-
-// Import React for useEffect
-import * as React from "react";
