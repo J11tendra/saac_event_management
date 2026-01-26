@@ -2,61 +2,17 @@
 
 import { createServiceRoleClient } from "./supabase/service-role";
 import { revalidatePath } from "next/cache";
-import { EventWithDetails } from "./types";
+import type { Event, EventReview, CreateEventData } from "./types";
 
-export interface EventDatePreference {
-  id: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  proposer_role?: string;
-}
-
-export interface BudgetRequest {
-  budget_amt: number;
-  purpose: string;
-  approved_budget: number | null;
-  approval_date: string | null;
-  event_id: string;
-  approval_comments: string | null;
-}
-
-export interface EventReview {
-  id: string;
-  created_at: string;
-  event_id?: string;
-  admin_id: string | null;
-  club_id: string | null;
-  comment: string;
-  admin?: { name: string; email_id: string } | null;
-  club?: { club_name: string; club_email: string } | null;
-}
-
-export interface Event {
-  id: string;
-  event_name: string;
-  event_descriptions: string;
-  approval_status: string;
-  approval_date: string | null;
-  created_at: string;
-  accepted_date_preference_id: string | null;
-  event_date_preference: EventDatePreference[];
-  budget_request: BudgetRequest | null;
-  event_review?: EventReview[];
-}
-
-export interface CreateEventData {
-  club_id: string;
-  event_name: string;
-  event_descriptions: string;
-  datePreferences: Array<{
-    date: string;
-    startTime: string;
-    endTime: string;
-  }>;
-  budgetAmount?: string;
-  budgetPurpose?: string;
-}
+// Re-export types for convenience
+export type {
+  Event,
+  EventReview,
+  EventDatePreference,
+  BudgetRequest,
+  CreateEventData,
+  Club,
+} from "./types";
 
 export async function createEvent(data: CreateEventData) {
   try {
@@ -98,7 +54,7 @@ export async function createEvent(data: CreateEventData) {
     console.log(
       "[queries/createEvent] Adding",
       datePreferencesToInsert.length,
-      "date preferences"
+      "date preferences",
     );
 
     if (datePreferencesToInsert.length > 0) {
@@ -110,7 +66,7 @@ export async function createEvent(data: CreateEventData) {
       if (dateError) {
         console.log(
           "[queries/createEvent] Error adding date preferences:",
-          dateError
+          dateError,
         );
         return { success: false, error: dateError.message };
       }
@@ -122,7 +78,7 @@ export async function createEvent(data: CreateEventData) {
     if (data.budgetAmount && data.budgetPurpose) {
       console.log(
         "[queries/createEvent] Adding budget request:",
-        data.budgetAmount
+        data.budgetAmount,
       );
 
       const { error: budgetError } = await supabase
@@ -137,7 +93,7 @@ export async function createEvent(data: CreateEventData) {
       if (budgetError) {
         console.log(
           "[queries/createEvent] Error adding budget request:",
-          budgetError
+          budgetError,
         );
         return { success: false, error: budgetError.message };
       }
@@ -166,9 +122,7 @@ export async function createEvent(data: CreateEventData) {
 // ============================================
 
 // Fetch events for a club (server-side with service role)
-export async function fetchEventsForClub(
-  clubId: string
-): Promise<EventWithDetails[]> {
+export async function fetchEventsForClub(clubId: string): Promise<Event[]> {
   "use server";
   const supabase = createServiceRoleClient();
 
@@ -185,7 +139,7 @@ export async function fetchEventsForClub(
         admin (*),
         club (*)
       )
-    `
+    `,
     )
     .eq("club_id", clubId)
     .order("created_at", { ascending: false });
@@ -197,10 +151,10 @@ export async function fetchEventsForClub(
 
   console.log(
     "[fetchEventsForClub] Fetched data:",
-    JSON.stringify(data, null, 2)
+    JSON.stringify(data, null, 2),
   );
 
-  return data as unknown as EventWithDetails[];
+  return data as unknown as Event[];
 }
 
 // Add budget request to an event (server-side)
@@ -242,26 +196,34 @@ export async function addEventReview(data: {
   eventId: string;
   clubId: string;
   comment: string;
-}): Promise<{ success: boolean; error?: string }> {
+}): Promise<{ success: boolean; error?: string; review?: EventReview }> {
   "use server";
   try {
     const supabase = createServiceRoleClient();
 
-    const { error } = await supabase
+    const { data: reviewData, error } = await supabase
       .schema("saac_thingy")
       .from("event_review")
       .insert({
         event_id: data.eventId,
         club_id: data.clubId,
         comment: data.comment,
-      });
+      })
+      .select(
+        `
+        *,
+        admin (*),
+        club (*)
+      `,
+      )
+      .single();
 
     if (error) {
       console.error("[addEventReview] Error:", error);
       return { success: false, error: error.message };
     }
 
-    return { success: true };
+    return { success: true, review: reviewData };
   } catch (error) {
     console.error("[addEventReview] Error:", error);
     return {
@@ -331,7 +293,7 @@ export async function updateDatePreferences(data: {
 
 // Delete a date preference (server-side)
 export async function deleteDatePreference(
-  preferenceId: string
+  preferenceId: string,
 ): Promise<{ success: boolean; error?: string }> {
   "use server";
   try {
