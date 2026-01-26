@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { redirect } from "next/navigation";
 import EventsClient from "./events-client";
-import type { Event } from "@/lib/queries";
+import type { Event } from "@/lib/types";
 
 export default async function EventsPage() {
   console.log("[events/page] Events page accessed");
@@ -37,7 +37,7 @@ export default async function EventsPage() {
   if (!club) {
     console.log(
       "[events/page] Club not found, attempting to create:",
-      user.email
+      user.email,
     );
 
     // Try to create the club if it doesn't exist using service role client
@@ -55,7 +55,7 @@ export default async function EventsPage() {
     if (createError || !newClub) {
       console.log("[events/page] Error creating club:", createError);
       redirect(
-        "/auth/error?message=Club profile not found and could not be created"
+        "/auth/error?message=Club profile not found and could not be created",
       );
     }
 
@@ -75,7 +75,7 @@ export default async function EventsPage() {
           admin (*),
           club (*)
         )
-      `
+      `,
       )
       .eq("club_id", newClub.id)
       .order("created_at", { ascending: false });
@@ -87,7 +87,7 @@ export default async function EventsPage() {
     console.log(
       "[events/page] Fetched",
       events?.length || 0,
-      "events for new club"
+      "events for new club",
     );
     return (
       <EventsClient
@@ -114,7 +114,7 @@ export default async function EventsPage() {
         admin (*),
         club (*)
       )
-    `
+    `,
     )
     .eq("club_id", club.id)
     .order("created_at", { ascending: false });
