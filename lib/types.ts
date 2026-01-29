@@ -3,30 +3,26 @@ export type UserRole = "club" | "admin";
 
 export interface Club {
   id: string;
-  created_at: string;
+  created_at?: string;
   club_name: string;
   club_email: string;
 }
 
-export interface Event {
+export interface Admin {
   id: string;
-  created_at: string;
-  club_id: string;
-  event_name: string;
-  event_descriptions: string;
-  approval_status: ApprovalStatus;
-  accepted_date_preference_id: string | null;
-  approval_date: string | null;
+  created_at?: string;
+  name: string;
+  email_id: string;
 }
 
 export interface EventDatePreference {
   id: string;
-  created_at: string;
-  event_id: string;
+  created_at?: string;
+  event_id?: string;
   date: string;
   start_time: string;
   end_time: string;
-  proposer_role: UserRole;
+  proposer_role?: UserRole | string;
 }
 
 export interface BudgetRequest {
@@ -38,29 +34,43 @@ export interface BudgetRequest {
   approval_comments: string | null;
 }
 
-export interface EventWithDetails extends Event {
-  club?: Club;
-  event_date_preference: EventDatePreference[];
-  budget_request: BudgetRequest[];
-  event_review?: EventReview[];
-}
-
-export interface Admin {
-  id: string;
-  created_at: string;
-  name: string;
-  email_id: string;
-}
-
 export interface EventReview {
   id: string;
   created_at: string;
-  event_id: string;
+  event_id?: string;
   admin_id: string | null;
   club_id: string | null;
   comment: string;
   admin?: Admin | null;
   club?: Club | null;
+}
+
+// Event with all related data (used in queries)
+export interface Event {
+  id: string;
+  created_at: string;
+  club_id?: string;
+  event_name: string;
+  event_descriptions: string;
+  approval_status: ApprovalStatus | string;
+  accepted_date_preference_id: string | null;
+  approval_date: string | null;
+  event_date_preference: EventDatePreference[];
+  budget_request: BudgetRequest | null;
+  event_review?: EventReview[];
+}
+
+export interface CreateEventData {
+  club_id: string;
+  event_name: string;
+  event_descriptions: string;
+  datePreferences: Array<{
+    date: string;
+    startTime: string;
+    endTime: string;
+  }>;
+  budgetAmount?: string;
+  budgetPurpose?: string;
 }
 
 export interface Collaborator {
