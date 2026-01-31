@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { GoogleIcon } from "@/components/icons";
+import { isAdmin } from "@/lib/admin-config";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -16,9 +17,13 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // If user is authenticated, redirect to events page
+  // If user is authenticated, redirect based on role
   if (user) {
-    redirect("/events");
+    if (isAdmin(user.email)) {
+      redirect("/admin");
+    } else {
+      redirect("/events");
+    }
   }
 
   // Otherwise show login page
