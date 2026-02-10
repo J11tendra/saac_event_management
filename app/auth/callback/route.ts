@@ -111,6 +111,12 @@ export async function GET(request: Request) {
       }
 
       console.log("[auth/callback] Redirecting to:", next);
+      // Check if user is admin and redirect accordingly
+      const { isAdmin: checkIsAdmin } = await import("@/lib/admin-config");
+      if (checkIsAdmin(email)) {
+        console.log("[auth/callback] User is admin, redirecting to admin dashboard");
+        return NextResponse.redirect(`${origin}/admin`);
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

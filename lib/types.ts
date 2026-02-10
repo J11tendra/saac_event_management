@@ -1,4 +1,4 @@
-export type ApprovalStatus = "pending" | "approved" | "rejected";
+export type ApprovalStatus = "pending" | "accepted" | "rejected";
 export type UserRole = "club" | "admin";
 
 export interface Club {

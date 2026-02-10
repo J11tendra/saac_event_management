@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CalendarDays, Home, Plus } from "lucide-react";
+import { CalendarDays, Home, Plus, Shield } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -20,24 +20,39 @@ import Link from "next/link";
 import { UserProfile } from "@/components/auth/user-profile";
 import { Button } from "@/components/ui/button";
 
-const menuItems = [
-  {
-    title: "Events",
-    url: "/events",
-    icon: CalendarDays,
-  },
-];
-
 export function AppSidebar({
   onCreateEvent,
   clubName,
   clubEmail,
+  isAdmin = false,
 }: {
   onCreateEvent?: () => void;
   clubName?: string;
   clubEmail?: string;
+  isAdmin?: boolean;
 }) {
   const { state } = useSidebar();
+
+  const menuItems = isAdmin
+    ? [
+        {
+          title: "Admin Calendar",
+          url: "/admin",
+          icon: Shield,
+        },
+        {
+          title: "My Events",
+          url: "/events",
+          icon: CalendarDays,
+        },
+      ]
+    : [
+        {
+          title: "Events",
+          url: "/events",
+          icon: CalendarDays,
+        },
+      ];
 
   return (
     <Sidebar collapsible="icon">
@@ -48,9 +63,9 @@ export function AppSidebar({
               size="lg"
               asChild
             >
-              <Link href="/events">
+              <Link href={isAdmin ? "/admin" : "/events"}>
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Home className="size-4" />
+                  {isAdmin ? <Shield className="size-4" /> : <Home className="size-4" />}
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
                   <span className="font-semibold">SAAC</span>
@@ -78,7 +93,7 @@ export function AppSidebar({
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
-                    {state !== "collapsed" && (
+                    {state !== "collapsed" && !isAdmin && item.title === "Events" && onCreateEvent && (
                       <Button
                         variant="ghost"
                         size="icon"
